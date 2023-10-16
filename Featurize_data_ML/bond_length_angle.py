@@ -1,7 +1,7 @@
 import numpy as np
 from pymatgen.core import Structure
 
-structure = Structure.from_file("POSCAR2.vasp")
+structure = Structure.from_file("POSCAR1.vasp")
 
 # Function to get atom indices for specified species
 def get_atom_indices(structure, species):
@@ -22,7 +22,7 @@ def bondlength(structure, index1, index2):
     atom2 = structure[index2]
     
     # Check conditions for bond length calculation
-    if np.allclose(atom1.coords, [0.0, 0.0, 0.0]) and np.allclose(atom2.coords, [0.0, 0.0, 0.0]):
+    if np.isclose(atom2.coords[0], 0.0) and np.isclose(atom2.coords[1], 0.0):
         return np.linalg.norm(atom1.coords - atom2.coords)
     else:
         return None
@@ -48,6 +48,30 @@ if len(c_indices) > 1:
     filtered_c_indices = [c_idx for c_idx in c_indices if np.isclose(structure[c_idx].coords[0], 0.0) and np.isclose(structure[c_idx].coords[1], 0.0)]
     if len(filtered_c_indices) == 1:
         c_idx = filtered_c_indices[0]
+        bond1 = bondlength(structure, sc_indices[0], c_idx)
+        bond2 = bondlength(structure, sc_indices[1], c_idx)
+        if bondlength is not None:
+            print("Bond length (Sc or Y-C):", sc_indices[0], c_idx + 1, bond1)
+            print("Bond length (Sc or Y-C):", sc_indices[1], c_idx + 1, bond2)
+    else:
+        print("Multiple atoms in c_indices have x and y coordinates as 0.0. Cannot calculate bond angles.")
+elif len(c_indices) == 1:
+    c_idx = c_indices[0]
+    bond1 = bondlength(structure, sc_indices[0], c_idx)
+    bond2 = bondlength(structure, sc_indices[0], c_idx)
+    if bondlength is not None:
+        print("Bond length (Sc or Y-C):", sc_indices[0], c_idx + 1, bond1)
+        print("Bond length (Sc or Y-C):", sc_indices[1], c_idx + 1, bond2)
+else:
+    print("No atoms in c_indices. Cannot calculate bond angles.")
+
+
+
+if len(c_indices) > 1:
+    # Filter c_indices based on x and y coordinates being 0.0
+    filtered_c_indices = [c_idx for c_idx in c_indices if np.isclose(structure[c_idx].coords[0], 0.0) and np.isclose(structure[c_idx].coords[1], 0.0)]
+    if len(filtered_c_indices) == 1:
+        c_idx = filtered_c_indices[0]
         bond_angle = bondangle(structure, sc_indices[0], c_idx, sc_indices[1])
         if bond_angle is not None:
             print("Bond angle (Sc or Y, C, Sc or Y):", sc_indices[0], c_idx + 1, sc_indices[1], bond_angle)
@@ -60,3 +84,4 @@ elif len(c_indices) == 1:
         print("Bond angle (Sc or Y, C, Sc or Y):", sc_indices[0], c_idx + 1, sc_indices[1], bond_angle)
 else:
     print("No atoms in c_indices. Cannot calculate bond angles.")
+    
